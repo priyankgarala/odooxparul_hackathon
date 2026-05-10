@@ -12,46 +12,78 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gray-900 border-b border-gray-800 px-6 py-4">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity">
-          Traveloop
+    <nav className="travel-nav px-4 py-4 sm:px-6">
+      <div className="max-w-7xl mx-auto flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center">
+        <Link to="/" className="flex items-center gap-3 text-2xl font-bold text-white hover:opacity-90 transition-opacity">
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-300 to-amber-300 text-sm font-black text-slate-950 shadow-lg shadow-teal-500/20">
+            T
+          </span>
+          <span>
+            Traveloop
+            <span className="block text-xs font-medium tracking-wide text-teal-100/70">Personalized travel planning</span>
+          </span>
         </Link>
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-wrap gap-2 items-center">
           {user ? (
             <>
               <Link
                 to="/cities"
-                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                className="travel-nav-link"
               >
                 Cities
               </Link>
               <Link
                 to="/community"
-                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                className="travel-nav-link"
               >
                 Community
               </Link>
+              <Link
+                to="/packing"
+                className="travel-nav-link"
+              >
+                Packing
+              </Link>
+              <Link
+                to="/notes"
+                className="travel-nav-link"
+              >
+                Notes
+              </Link>
+              <Link
+                to="/expenses"
+                className="travel-nav-link"
+              >
+                Expenses
+              </Link>
+              {user.isAdmin && (
+                <Link
+                  to="/admin"
+                  className="travel-nav-link"
+                >
+                  Admin
+                </Link>
+              )}
               <Link 
                 to="/create-trip"
-                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-lg transition-colors shadow-lg shadow-purple-500/25"
+                className="travel-primary-link"
               >
                 Plan Trip
               </Link>
               <Link
                 to="/profile"
-                className="flex items-center gap-3 ml-2 mr-4 border-l border-gray-700 pl-4 rounded-lg hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/70 transition-colors"
+                className="flex items-center gap-3 ml-1 rounded-2xl border border-white/10 bg-white/8 px-3 py-2 hover:bg-white/12 focus:outline-none focus:ring-2 focus:ring-teal-300/70 transition-colors"
               >
                 <img
                   src={user.profilePhoto || 'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg'}
                   alt="Profile"
-                  className="w-8 h-8 rounded-full border border-gray-700"
+                  className="w-8 h-8 rounded-full border border-teal-200/40"
                 />
-                <span className="text-gray-300 font-medium">{user.firstName}</span>
+                <span className="text-teal-50 font-medium">{user.firstName}</span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors border border-gray-700"
+                className="px-4 py-2 text-sm font-medium text-white/90 bg-white/8 rounded-2xl hover:bg-white/12 transition-colors border border-white/10"
               >
                 Logout
               </button>
@@ -60,13 +92,13 @@ const Navbar = () => {
             <>
               <Link
                 to="/login"
-                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                className="travel-nav-link"
               >
                 Log in
               </Link>
               <Link
                 to="/signup"
-                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/30"
+                className="travel-primary-link"
               >
                 Sign up
               </Link>

@@ -24,6 +24,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/trips', require('./routes/tripRoutes'));
 app.use('/api/cities', require('./routes/cityRoutes'));
 app.use('/api/community', require('./routes/communityRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.use(errorHandler);
 

@@ -12,81 +12,122 @@ import CitySearch from './pages/CitySearch';
 import ItineraryView from './pages/ItineraryView';
 import TripDetails from './pages/TripDetails';
 import Community from './pages/Community';
+import PackingChecklist from './pages/PackingChecklist';
+import PublicItineraryView from './pages/PublicItineraryView';
+import TripNotes from './pages/TripNotes';
+import ExpenseInvoice from './pages/ExpenseInvoice';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-[#0d0f14] text-white font-sans">
+        <div className="travel-app min-h-screen text-white font-sans">
+          <div className="travel-ambient" aria-hidden="true"></div>
           <Navbar />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+          <main className="relative z-10">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/shared/:shareId" element={<PublicItineraryView />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/create-trip"
+                element={
+                  <ProtectedRoute>
+                    <CreateTrip />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cities"
+                element={
+                  <ProtectedRoute>
+                    <CitySearch />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/community"
+                element={
+                  <ProtectedRoute>
+                    <Community />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/packing"
+                element={
+                  <ProtectedRoute>
+                    <PackingChecklist />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notes"
+                element={
+                  <ProtectedRoute>
+                    <TripNotes />
+                  </ProtectedRoute>
+                }
+              />
             <Route
-              path="/"
+              path="/expenses"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <ExpenseInvoice />
+                  </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminPanel />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/create-trip"
-              element={
-                <ProtectedRoute>
-                  <CreateTrip />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/cities"
-              element={
-                <ProtectedRoute>
-                  <CitySearch />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/community"
-              element={
-                <ProtectedRoute>
-                  <Community />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/builder/:id"
-              element={
-                <ProtectedRoute>
-                  <ItineraryBuilder />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/trips/:id/details"
-              element={
-                <ProtectedRoute>
-                  <TripDetails />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/trips/:id"
-              element={
-                <ProtectedRoute>
-                  <ItineraryView />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+                path="/builder/:id"
+                element={
+                  <ProtectedRoute>
+                    <ItineraryBuilder />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/trips/:id/details"
+                element={
+                  <ProtectedRoute>
+                    <TripDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/trips/:id"
+                element={
+                  <ProtectedRoute>
+                    <ItineraryView />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </main>
         </div>
       </Router>
     </AuthProvider>

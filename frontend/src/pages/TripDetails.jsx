@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { CalendarDays, Eye, MapPin, PencilRuler, Plus } from 'lucide-react';
+import { CalendarDays, Eye, MapPin, NotebookPen, PencilRuler, Plus } from 'lucide-react';
 
 const TripDetails = () => {
   const { id } = useParams();
@@ -73,7 +73,7 @@ const TripDetails = () => {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           <Link to={`/builder/${trip._id}`} className="rounded-2xl border border-purple-500/50 bg-purple-600 p-5 text-white shadow-lg shadow-purple-500/20 transition-colors hover:bg-purple-500">
             <PencilRuler size={24} />
             <h2 className="mt-4 text-lg font-bold">Itinerary Builder</h2>
@@ -93,6 +93,11 @@ const TripDetails = () => {
             <Eye size={24} className="text-purple-300" />
             <h2 className="mt-4 text-lg font-bold">Itinerary View</h2>
             <p className="mt-2 text-sm text-gray-400">Review the trip as a clean read-only plan.</p>
+          </Link>
+          <Link to="/notes" className="rounded-2xl border border-gray-700 bg-[#151821] p-5 transition-colors hover:border-purple-500">
+            <NotebookPen size={24} className="text-purple-300" />
+            <h2 className="mt-4 text-lg font-bold">Trip Notes</h2>
+            <p className="mt-2 text-sm text-gray-400">Save reminders, contacts, and day notes.</p>
           </Link>
         </div>
 

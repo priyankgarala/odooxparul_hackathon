@@ -13,9 +13,19 @@ const userResponse = (user, token) => ({
   country: user.country,
   additionalInfo: user.additionalInfo,
   profilePhoto: user.profilePhoto,
+  isAdmin: user.isAdmin,
   createdAt: user.createdAt,
   ...(token ? { token } : {}),
 });
+
+const isConfiguredAdmin = (email) => {
+  const adminEmails = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '')
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+
+  return adminEmails.includes(email);
+};
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -50,6 +60,7 @@ const registerUser = async (req, res) => {
       additionalInfo,
       password,
       profilePhoto,
+      isAdmin: isConfiguredAdmin(normalizedEmail),
     });
 
     if (user) {
@@ -80,6 +91,10 @@ const loginUser = async (req, res) => {
     }).select('+password');
 
     if (user && (await user.matchPassword(password))) {
+      if (!user.isAdmin && isConfiguredAdmin(user.email)) {
+        user.isAdmin = true;
+        await user.save();
+      }
       res.json(userResponse(user, generateToken(user._id)));
     } else {
       res.status(401).json({ message: 'Invalid email or password' });

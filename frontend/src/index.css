@@ -1,1 +1,178 @@
 @import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --travel-bg: #071111;
+  --travel-ink: #f8fbf7;
+  --travel-muted: #a8b8ad;
+  --travel-panel: rgba(12, 25, 26, 0.78);
+  --travel-panel-strong: rgba(17, 33, 34, 0.92);
+  --travel-border: rgba(202, 244, 225, 0.18);
+  --travel-teal: #5eead4;
+  --travel-amber: #f8c46b;
+  --travel-coral: #fb7185;
+}
+
+html {
+  background: var(--travel-bg);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(7, 17, 17, 0.88), rgba(7, 17, 17, 0.94)),
+    url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80") center/cover fixed;
+  color: var(--travel-ink);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent 80%);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  letter-spacing: 0;
+}
+
+select option {
+  background: #102022;
+  color: #f8fbf7;
+}
+
+.travel-app {
+  position: relative;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(94, 234, 212, 0.22), transparent 34rem),
+    radial-gradient(circle at top right, rgba(248, 196, 107, 0.16), transparent 30rem),
+    linear-gradient(135deg, rgba(6, 20, 22, 0.72), rgba(11, 18, 24, 0.94));
+}
+
+.travel-ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(94, 234, 212, 0.18), transparent 18rem),
+    radial-gradient(circle at 78% 12%, rgba(248, 196, 107, 0.15), transparent 19rem),
+    linear-gradient(180deg, transparent, rgba(7, 17, 17, 0.62));
+}
+
+.travel-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid var(--travel-border);
+  background: rgba(7, 17, 17, 0.76);
+  backdrop-filter: blur(22px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.26);
+}
+
+.travel-nav-link {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 0.5rem 0.85rem;
+  color: rgba(232, 246, 239, 0.78);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.travel-nav-link:hover {
+  border-color: rgba(94, 234, 212, 0.36);
+  background: rgba(94, 234, 212, 0.1);
+  color: #ffffff;
+}
+
+.travel-primary-link {
+  border: 1px solid rgba(248, 196, 107, 0.4);
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  color: #081313;
+  font-size: 0.875rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--travel-teal), var(--travel-amber));
+  box-shadow: 0 12px 30px rgba(94, 234, 212, 0.2);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.travel-primary-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(248, 196, 107, 0.24);
+}
+
+.travel-app [class*="bg-[#0d0f14]"] {
+  background: transparent !important;
+}
+
+.travel-app [class*="bg-[#10131a]"],
+.travel-app [class*="bg-[#151821]"],
+.travel-app [class*="bg-[#1e2230]"],
+.travel-app [class*="bg-gray-900"],
+.travel-app [class*="bg-gray-800"] {
+  background: var(--travel-panel) !important;
+  backdrop-filter: blur(18px);
+}
+
+.travel-app [class*="border-gray-800"],
+.travel-app [class*="border-gray-700"],
+.travel-app [class*="border-gray-600"],
+.travel-app [class*="border-gray-500"] {
+  border-color: var(--travel-border) !important;
+}
+
+.travel-app input,
+.travel-app select,
+.travel-app textarea {
+  border-color: rgba(202, 244, 225, 0.18) !important;
+  background: rgba(5, 16, 17, 0.58) !important;
+  color: var(--travel-ink) !important;
+}
+
+.travel-app input::placeholder,
+.travel-app textarea::placeholder {
+  color: rgba(202, 244, 225, 0.48) !important;
+}
+
+.travel-app input:focus,
+.travel-app select:focus,
+.travel-app textarea:focus {
+  border-color: rgba(94, 234, 212, 0.7) !important;
+  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.12);
+}
+
+.travel-app [class*="text-purple"],
+.travel-app [class*="text-pink"] {
+  color: var(--travel-teal) !important;
+}
+
+.travel-app [class*="bg-purple-600"],
+.travel-app [class*="bg-pink-600"],
+.travel-app [class*="from-purple-600"],
+.travel-app [class*="to-pink-600"] {
+  background: linear-gradient(135deg, var(--travel-teal), var(--travel-amber)) !important;
+  color: #071111 !important;
+}
+
+.travel-app [class*="shadow-purple"] {
+  box-shadow: 0 18px 42px rgba(94, 234, 212, 0.16) !important;
+}
+
+.travel-app [class*="rounded-3xl"],
+.travel-app [class*="rounded-2xl"] {
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.22);
+}

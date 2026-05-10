@@ -20,6 +20,24 @@ const citySchema = new mongoose.Schema({
   addedAt: { type: Date, default: Date.now },
 });
 
+const packingItemSchema = new mongoose.Schema({
+  label: { type: String, required: true, trim: true },
+  category: { type: String, required: true, trim: true },
+  packed: { type: Boolean, default: false },
+});
+
+const noteSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    content: { type: String, required: true, trim: true },
+    day: { type: String, trim: true },
+    stop: { type: String, trim: true },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 const tripSchema = new mongoose.Schema(
   {
     userId: {
@@ -61,6 +79,8 @@ const tripSchema = new mongoose.Schema(
     },
     sections: [sectionSchema],
     cities: [citySchema],
+    packingChecklist: [packingItemSchema],
+    notes: [noteSchema],
   },
   {
     timestamps: true,

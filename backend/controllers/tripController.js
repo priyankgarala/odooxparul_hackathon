@@ -35,6 +35,23 @@ const getTripById = async (req, res) => {
   }
 };
 
+// @desc    Get public shared trip
+// @route   GET /api/trips/public/:shareId
+// @access  Public
+const getPublicTrip = async (req, res) => {
+  try {
+    const trip = await Trip.findOne({ shareId: req.params.shareId, isPublic: true });
+
+    if (!trip) {
+      return res.status(404).json({ message: 'Public itinerary not found' });
+    }
+
+    res.status(200).json(trip);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Create a trip
 // @route   POST /api/trips
 // @access  Private
@@ -77,6 +94,57 @@ const getOwnedTrip = async (tripId, userId) => {
   }
 
   return { trip };
+};
+
+// @desc    Make trip public and return share id
+// @route   POST /api/trips/:id/share
+// @access  Private
+const shareTrip = async (req, res) => {
+  try {
+    const { trip, error } = await getOwnedTrip(req.params.id, req.user.id);
+
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    trip.isPublic = true;
+    await trip.save();
+
+    res.status(200).json(trip);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Copy a public trip to the current user
+// @route   POST /api/trips/public/:shareId/copy
+// @access  Private
+const copyPublicTrip = async (req, res) => {
+  try {
+    const sourceTrip = await Trip.findOne({ shareId: req.params.shareId, isPublic: true });
+
+    if (!sourceTrip) {
+      return res.status(404).json({ message: 'Public itinerary not found' });
+    }
+
+    const copiedTrip = await Trip.create({
+      userId: req.user.id,
+      title: `${sourceTrip.title} Copy`,
+      description: sourceTrip.description,
+      country: sourceTrip.country,
+      startDate: sourceTrip.startDate,
+      endDate: sourceTrip.endDate,
+      coverImage: sourceTrip.coverImage,
+      sections: sourceTrip.sections,
+      cities: sourceTrip.cities,
+      packingChecklist: sourceTrip.packingChecklist,
+      isPublic: false,
+    });
+
+    res.status(201).json(copiedTrip);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // @desc    Add a city to a trip
@@ -198,9 +266,12 @@ const deleteTrip = async (req, res) => {
 module.exports = {
   getTrips,
   getTripById,
+  getPublicTrip,
   createTrip,
   updateTrip,
   deleteTrip,
   addCityToTrip,
   removeCityFromTrip,
+  shareTrip,
+  copyPublicTrip,
 };

@@ -109,9 +109,9 @@ const CreateTrip = () => {
               required
               className="w-full bg-transparent border-b border-gray-700 text-white focus:outline-none focus:border-purple-500 pb-1"
             >
-              <option value="">Select country</option>
+              <option value="" className="bg-[#151821] text-white">Select country</option>
               {countries.map((country) => (
-                <option key={country} value={country}>{country}</option>
+                <option key={country} value={country} className="bg-[#151821] text-white">{country}</option>
               ))}
             </select>
           </div>

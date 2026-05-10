@@ -1,12 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Edit3, MapPin } from 'lucide-react';
+import { ArrowUpDown, Copy, Edit3, Filter, Layers, Search, Share2 } from 'lucide-react';
 
 const ItineraryView = () => {
   const { id } = useParams();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [filterBy, setFilterBy] = useState('');
+  const [sortBy, setSortBy] = useState('day');
+  const [groupByDay, setGroupByDay] = useState(true);
+  const [shareUrl, setShareUrl] = useState('');
+  const [shareMessage, setShareMessage] = useState('');
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -28,6 +34,62 @@ const ItineraryView = () => {
     fetchTrip();
   }, [id]);
 
+  const rows = useMemo(() => {
+    if (!trip) return [];
+
+    const sectionRows = trip.sections?.map((section, index) => ({
+      id: section._id || index,
+      day: `Day ${index + 1}`,
+      city: trip.cities?.[index % Math.max(trip.cities.length, 1)]?.name || trip.country || 'Selected place',
+      activity: section.description || 'No activity added yet',
+      timeline: section.dateRange || 'Timeline not set',
+      expense: section.budget || 'Not estimated',
+      type: section.budget ? 'Budgeted' : 'Unbudgeted',
+    })) || [];
+
+    return sectionRows.filter((row) => {
+      const text = [row.day, row.city, row.activity, row.timeline, row.expense, row.type].join(' ').toLowerCase();
+      const matchesQuery = text.includes(query.trim().toLowerCase());
+      const matchesFilter = !filterBy || row.type === filterBy;
+      return matchesQuery && matchesFilter;
+    }).sort((a, b) => {
+      if (sortBy === 'expense') return a.expense.localeCompare(b.expense);
+      if (sortBy === 'activity') return a.activity.localeCompare(b.activity);
+      return a.day.localeCompare(b.day);
+    });
+  }, [filterBy, query, sortBy, trip]);
+
+  const groupedRows = useMemo(() => {
+    if (!groupByDay) {
+      return { 'Itinerary for a selected place': rows };
+    }
+
+    return rows.reduce((groups, row) => {
+      groups[row.day] = [...(groups[row.day] || []), row];
+      return groups;
+    }, {});
+  }, [groupByDay, rows]);
+
+  const totalBudgetItems = rows.filter((row) => row.type === 'Budgeted').length;
+
+  const createPublicShare = async () => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      };
+      const { data } = await axios.post(`/api/trips/${id}/share`, {}, config);
+      const url = `${window.location.origin}/shared/${data.shareId}`;
+      setTrip(data);
+      setShareUrl(url);
+      await navigator.clipboard.writeText(url);
+      setShareMessage('Public URL copied');
+    } catch (error) {
+      setShareMessage(error.response?.data?.message || 'Failed to create public URL');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-[calc(100vh-73px)] bg-[#0d0f14] flex items-center justify-center text-white">
@@ -46,70 +108,149 @@ const ItineraryView = () => {
 
   return (
     <div className="min-h-[calc(100vh-73px)] bg-[#0d0f14] p-4 sm:p-8 text-white">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <div className="overflow-hidden rounded-3xl border border-gray-800 bg-[#151821]">
-          <div className="relative h-64">
-            <img src={trip.coverImage} alt={trip.title} className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#151821] via-black/20 to-transparent"></div>
-            <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-purple-200">Itinerary View</p>
-                <h1 className="mt-1 text-3xl font-bold">{trip.title}</h1>
-                <p className="mt-2 text-gray-300">{trip.description}</p>
-              </div>
-              <Link to={`/builder/${trip._id}`} className="flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 py-2.5 text-sm font-semibold hover:bg-purple-500">
-                <Edit3 size={16} />
-                Edit Itinerary
-              </Link>
-            </div>
+      <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl border border-gray-700 bg-[#10131a] shadow-2xl">
+        <div className="flex items-center justify-between border-b border-gray-700 px-5 py-4 sm:px-7">
+          <div>
+            <p className="text-sm font-semibold text-gray-400">Traveloop</p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight">Itinerary View</h1>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button onClick={createPublicShare} className="flex items-center gap-2 rounded-xl border border-gray-600 px-4 py-2 text-sm font-semibold hover:border-purple-500">
+              <Share2 size={16} />
+              Share
+            </button>
+            <Link to={`/builder/${trip._id}`} className="flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold hover:bg-purple-500">
+              <Edit3 size={16} />
+              Edit
+            </Link>
           </div>
         </div>
 
-        <section className="rounded-2xl border border-gray-800 bg-[#151821] p-5">
-          <h2 className="mb-4 text-xl font-semibold">Included Cities</h2>
-          {trip.cities?.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {trip.cities.map((city) => (
-                <article key={city.cityId} className="rounded-2xl border border-gray-700 bg-[#0d0f14]/60 p-4">
-                  <div className="flex gap-4">
-                    <img src={city.image} alt={city.name} className="h-20 w-20 rounded-xl object-cover" />
-                    <div>
-                      <h3 className="font-bold">{city.name}</h3>
-                      <p className="text-sm text-gray-400">{city.country} · {city.region}</p>
-                      <p className="mt-2 flex items-center gap-1 text-sm text-gray-300">
-                        <MapPin size={14} />
-                        Cost {city.costIndex}/100 · Popularity {city.popularity}/100
-                      </p>
+        {(shareUrl || trip.shareId) && (
+          <div className="border-b border-gray-800 px-4 py-3 sm:px-6">
+            <div className="flex flex-col gap-3 rounded-2xl border border-gray-700 bg-[#151821] p-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-gray-200">Public URL</p>
+                <p className="mt-1 break-all text-sm text-gray-400">{shareUrl || `${window.location.origin}/shared/${trip.shareId}`}</p>
+                {shareMessage && <p className="mt-1 text-sm text-purple-200">{shareMessage}</p>}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={async () => {
+                    const url = shareUrl || `${window.location.origin}/shared/${trip.shareId}`;
+                    await navigator.clipboard.writeText(url);
+                    setShareMessage('Public URL copied');
+                  }}
+                  className="flex items-center gap-2 rounded-xl border border-gray-600 px-4 py-2 text-sm font-semibold hover:border-purple-500"
+                >
+                  <Copy size={16} />
+                  Copy
+                </button>
+                <Link to={`/shared/${trip.shareId}`} className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold hover:bg-purple-500">
+                  Open Public
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="border-b border-gray-800 p-4 sm:p-6">
+          <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto_auto]">
+            <div className="relative">
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="h-12 w-full rounded-xl border border-gray-600 bg-[#0d0f14] pl-10 pr-4 text-white outline-none placeholder:text-gray-500 focus:border-purple-500"
+                placeholder="Search bar ......"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setGroupByDay(!groupByDay)}
+              className={`flex h-12 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium ${
+                groupByDay ? 'border-purple-500 bg-purple-500/20 text-purple-100' : 'border-gray-600 bg-[#151821] text-gray-200'
+              }`}
+            >
+              <Layers size={16} />
+              Group by
+            </button>
+
+            <label className="relative block">
+              <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-300" />
+              <select
+                value={filterBy}
+                onChange={(e) => setFilterBy(e.target.value)}
+                className="h-12 min-w-32 appearance-none rounded-xl border border-gray-600 bg-[#151821] pl-9 pr-8 text-sm font-medium text-white outline-none focus:border-purple-500"
+              >
+                <option value="">Filter</option>
+                <option value="Budgeted">Budgeted</option>
+                <option value="Unbudgeted">Unbudgeted</option>
+              </select>
+            </label>
+
+            <label className="relative block">
+              <ArrowUpDown size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-300" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="h-12 min-w-32 appearance-none rounded-xl border border-gray-600 bg-[#151821] pl-9 pr-8 text-sm font-medium text-white outline-none focus:border-purple-500"
+              >
+                <option value="day">Sort by day</option>
+                <option value="activity">Activity</option>
+                <option value="expense">Expense</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-6">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold">Itinerary for {trip.country || trip.title}</h2>
+            <p className="mt-2 text-sm text-gray-400">
+              {trip.cities?.length || 0} cities/stops | {totalBudgetItems} budgeted activity blocks
+            </p>
+          </div>
+
+          <div className="grid grid-cols-[96px_1fr_140px] gap-3 px-2 pb-3 text-sm font-semibold text-gray-300">
+            <span></span>
+            <span className="text-center">Physical Activity</span>
+            <span className="text-center">Expense</span>
+          </div>
+
+          <div className="space-y-6">
+            {Object.entries(groupedRows).map(([groupName, groupRows]) => (
+              <section key={groupName} className="space-y-3">
+                {groupRows.map((row, index) => (
+                  <div key={row.id} className="grid grid-cols-[96px_1fr_140px] gap-3">
+                    <div className="flex items-start justify-center pt-2">
+                      {index === 0 && (
+                        <span className="rounded-lg border border-gray-500 bg-[#151821] px-3 py-2 text-sm font-semibold">
+                          {groupByDay ? groupName : row.day}
+                        </span>
+                      )}
+                    </div>
+                    <div className="rounded-xl border border-gray-600 bg-[#151821] p-4">
+                      <p className="font-semibold text-white">{row.activity}</p>
+                      <p className="mt-2 text-sm text-gray-400">{row.city} | {row.timeline}</p>
+                    </div>
+                    <div className="rounded-xl border border-gray-600 bg-[#151821] p-4 text-center text-sm font-semibold text-gray-200">
+                      {row.expense}
                     </div>
                   </div>
-                  <p className="mt-3 text-sm text-gray-400">{city.bestFor}</p>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400">No cities added yet.</p>
-          )}
-        </section>
+                ))}
+              </section>
+            ))}
 
-        <section className="rounded-2xl border border-gray-800 bg-[#151821] p-5">
-          <h2 className="mb-4 text-xl font-semibold">Itinerary Sections</h2>
-          {trip.sections?.length > 0 ? (
-            <div className="space-y-4">
-              {trip.sections.map((section, index) => (
-                <article key={section._id || index} className="rounded-2xl border border-gray-700 bg-[#0d0f14]/60 p-4">
-                  <h3 className="font-semibold">Section {index + 1}</h3>
-                  <p className="mt-2 text-gray-300">{section.description || 'No description added.'}</p>
-                  <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-400">
-                    <span>Date: {section.dateRange || 'N/A'}</span>
-                    <span>Budget: {section.budget || 'N/A'}</span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400">No itinerary sections yet.</p>
-          )}
-        </section>
+            {rows.length === 0 && (
+              <div className="rounded-2xl border border-gray-700 bg-[#151821] px-6 py-12 text-center text-gray-400">
+                No itinerary rows match your search.
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
