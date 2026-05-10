@@ -57,8 +57,20 @@ const Profile = () => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const preplannedTrips = myTrips.filter(trip => new Date(trip.startDate) >= today);
-  const previousTrips = myTrips.filter(trip => new Date(trip.startDate) < today);
+  const getDateOnly = (dateValue) => {
+    const date = new Date(dateValue);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  const getTripEndDate = (trip) => getDateOnly(trip.endDate || trip.startDate);
+  const ongoingTrips = myTrips.filter((trip) => {
+    const startDate = getDateOnly(trip.startDate);
+    const endDate = getTripEndDate(trip);
+    return startDate <= today && endDate >= today;
+  });
+  const preplannedTrips = myTrips.filter((trip) => getDateOnly(trip.startDate) > today);
+  const previousTrips = myTrips.filter((trip) => getTripEndDate(trip) < today);
 
   const handleProfileChange = (e) => {
     setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
@@ -269,6 +281,37 @@ const Profile = () => {
                   Edit Profile
                 </button>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Ongoing Trips */}
+        <div>
+          <h2 className="text-2xl font-bold mb-6 tracking-wide text-white border-b border-gray-800 pb-2">Ongoing Trips</h2>
+          <div className="flex flex-wrap gap-6">
+            {loading ? (
+              <p className="text-gray-500">Loading trips...</p>
+            ) : ongoingTrips.length === 0 ? (
+              <p className="text-gray-500">No ongoing trips.</p>
+            ) : (
+              ongoingTrips.map((trip) => (
+                <div key={trip._id} className="w-48 h-72 border border-emerald-500/40 rounded-2xl p-3 flex flex-col bg-emerald-500/10 shadow-md">
+                  <div className="w-full h-40 rounded-xl overflow-hidden mb-3 relative">
+                    <img src={trip.coverImage || 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=300&q=80'} alt={trip.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                    <span className="absolute top-2 left-2 rounded-full bg-emerald-500 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black">Ongoing</span>
+                    <h3 className="absolute bottom-2 left-2 right-2 text-white font-bold text-sm leading-tight truncate">{trip.title}</h3>
+                  </div>
+                  <div className="flex-1 flex flex-col justify-between">
+                    <p className="text-xs text-emerald-300 font-semibold uppercase tracking-wide">
+                      {new Date(trip.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {trip.endDate ? new Date(trip.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Open'}
+                    </p>
+                    <Link to={`/trips/${trip._id}/details`} className="w-full py-2 border border-emerald-500/50 hover:border-emerald-400 hover:bg-emerald-500/10 text-white font-medium rounded-xl text-center transition-colors text-sm">
+                      View
+                    </Link>
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </div>

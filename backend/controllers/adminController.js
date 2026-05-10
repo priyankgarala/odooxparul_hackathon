@@ -1,79 +1,72 @@
-const User = require('../models/User');
-const Trip = require('../models/Trip');
-const CommunityPost = require('../models/CommunityPost');
+const { pool } = require('../config/db');
 
 const getAdminStats = async (req, res) => {
   try {
-    const [users, trips, posts] = await Promise.all([
-      User.find({}).select('-password').sort({ createdAt: -1 }),
-      Trip.find({}).sort({ createdAt: -1 }),
-      CommunityPost.find({}).sort({ createdAt: -1 }),
+    const [usersResult, tripsResult, postsResult] = await Promise.all([
+      pool.query('SELECT id, first_name, last_name, email, country, is_admin, created_at FROM users ORDER BY created_at DESC'),
+      pool.query('SELECT * FROM trips ORDER BY created_at DESC'),
+      pool.query('SELECT * FROM community_posts ORDER BY created_at DESC'),
     ]);
 
+    const users = usersResult.rows;
+    const trips = tripsResult.rows;
+    const posts = postsResult.rows;
     const cityCounts = {};
     const activityCounts = {};
     const monthlyTrips = {};
 
     trips.forEach((trip) => {
-      const month = new Date(trip.createdAt).toLocaleString('default', { month: 'short', year: 'numeric' });
+      const month = new Date(trip.created_at).toLocaleString('default', { month: 'short', year: 'numeric' });
       monthlyTrips[month] = (monthlyTrips[month] || 0) + 1;
 
-      trip.cities?.forEach((city) => {
+      (trip.cities || []).forEach((city) => {
         cityCounts[city.name] = (cityCounts[city.name] || 0) + 1;
       });
 
-      trip.sections?.forEach((section) => {
+      (trip.sections || []).forEach((section) => {
         const key = section.description?.split(' ').slice(0, 4).join(' ') || 'Unnamed activity';
         activityCounts[key] = (activityCounts[key] || 0) + 1;
       });
     });
 
-    const topCities = Object.entries(cityCounts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-
-    const topActivities = Object.entries(activityCounts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-
+    const topCities = Object.entries(cityCounts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 8);
+    const topActivities = Object.entries(activityCounts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 8);
     const tripTrend = Object.entries(monthlyTrips).map(([label, count]) => ({ label, count }));
 
     res.status(200).json({
       totals: {
         users: users.length,
         trips: trips.length,
-        publicTrips: trips.filter((trip) => trip.isPublic).length,
+        publicTrips: trips.filter((trip) => trip.is_public).length,
         communityPosts: posts.length,
-        notes: trips.reduce((total, trip) => total + (trip.notes?.length || 0), 0),
+        notes: trips.reduce((total, trip) => total + ((trip.notes || []).length), 0),
       },
       users: users.map((user) => ({
-        _id: user._id,
-        name: `${user.firstName} ${user.lastName}`.trim(),
+        _id: user.id,
+        name: `${user.first_name} ${user.last_name}`.trim(),
         email: user.email,
         country: user.country,
-        isAdmin: user.isAdmin,
-        createdAt: user.createdAt,
-        trips: trips.filter((trip) => trip.userId.toString() === user._id.toString()).length,
+        isAdmin: user.is_admin,
+        createdAt: user.created_at,
+        trips: trips.filter((trip) => trip.user_id === user.id).length,
       })),
       trips: trips.map((trip) => ({
-        _id: trip._id,
+        _id: trip.id,
         title: trip.title,
         country: trip.country,
-        cities: trip.cities?.length || 0,
-        activities: trip.sections?.length || 0,
-        isPublic: trip.isPublic,
-        createdAt: trip.createdAt,
+        cities: (trip.cities || []).length,
+        activities: (trip.sections || []).length,
+        isPublic: trip.is_public,
+        createdAt: trip.created_at,
       })),
       topCities,
       topActivities,
       tripTrend,
       engagement: [
         { label: 'Trips', count: trips.length },
-        { label: 'Public shares', count: trips.filter((trip) => trip.isPublic).length },
+        { label: 'Public shares', count: trips.filter((trip) => trip.is_public).length },
         { label: 'Community posts', count: posts.length },
-        { label: 'Journal notes', count: trips.reduce((total, trip) => total + (trip.notes?.length || 0), 0) },
+        { label: 'Journal notes', count: trips.reduce((total, trip) => total + ((trip.notes || []).length), 0) },
       ],
     });
   } catch (error) {
@@ -83,22 +76,23 @@ const getAdminStats = async (req, res) => {
 
 const updateUserAdmin = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const { rows } = await pool.query(
+      'UPDATE users SET is_admin = $1, updated_at = NOW() WHERE id = $2 RETURNING id, first_name, last_name, email, country, is_admin, created_at',
+      [Boolean(req.body.isAdmin), req.params.id]
+    );
 
-    if (!user) {
+    if (!rows[0]) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    user.isAdmin = Boolean(req.body.isAdmin);
-    await user.save();
-
+    const user = rows[0];
     res.status(200).json({
-      _id: user._id,
-      name: `${user.firstName} ${user.lastName}`.trim(),
+      _id: user.id,
+      name: `${user.first_name} ${user.last_name}`.trim(),
       email: user.email,
       country: user.country,
-      isAdmin: user.isAdmin,
-      createdAt: user.createdAt,
+      isAdmin: user.is_admin,
+      createdAt: user.created_at,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

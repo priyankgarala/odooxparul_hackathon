@@ -1,98 +1,24 @@
-const mongoose = require('mongoose');
+const tripTable = {
+  tableName: 'trips',
+  jsonColumns: ['sections', 'cities', 'packing_checklist', 'notes'],
+  columns: [
+    'id',
+    'user_id',
+    'title',
+    'description',
+    'country',
+    'start_date',
+    'end_date',
+    'cover_image',
+    'is_public',
+    'share_id',
+    'sections',
+    'cities',
+    'packing_checklist',
+    'notes',
+    'created_at',
+    'updated_at',
+  ],
+};
 
-const sectionSchema = new mongoose.Schema({
-  description: { type: String },
-  dateRange: { type: String },
-  budget: { type: String }
-});
-
-const citySchema = new mongoose.Schema({
-  cityId: { type: String, required: true },
-  name: { type: String, required: true },
-  country: { type: String, required: true },
-  region: { type: String, required: true },
-  costIndex: { type: Number, required: true },
-  popularity: { type: Number, required: true },
-  bestFor: { type: String },
-  avgBudget: { type: String },
-  season: { type: String },
-  image: { type: String },
-  addedAt: { type: Date, default: Date.now },
-});
-
-const packingItemSchema = new mongoose.Schema({
-  label: { type: String, required: true, trim: true },
-  category: { type: String, required: true, trim: true },
-  packed: { type: Boolean, default: false },
-});
-
-const noteSchema = new mongoose.Schema(
-  {
-    title: { type: String, required: true, trim: true },
-    content: { type: String, required: true, trim: true },
-    day: { type: String, trim: true },
-    stop: { type: String, trim: true },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-const tripSchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: 'User',
-    },
-    title: {
-      type: String,
-      required: [true, 'Please add a title for the trip'],
-      trim: true,
-    },
-    description: {
-      type: String,
-    },
-    country: {
-      type: String,
-      trim: true,
-    },
-    startDate: {
-      type: Date,
-      required: [true, 'Please add a start date'],
-    },
-    endDate: {
-      type: Date,
-    },
-    coverImage: {
-      type: String,
-      default: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1000&q=80',
-    },
-    isPublic: {
-      type: Boolean,
-      default: false,
-    },
-    shareId: {
-      type: String,
-      unique: true,
-      sparse: true,
-    },
-    sections: [sectionSchema],
-    cities: [citySchema],
-    packingChecklist: [packingItemSchema],
-    notes: [noteSchema],
-  },
-  {
-    timestamps: true,
-  }
-);
-
-// Pre-save middleware to generate a shareId if the trip is made public and doesn't have one
-tripSchema.pre('save', function () {
-  if (this.isPublic && !this.shareId) {
-    // Generate a simple random alphanumeric string
-    this.shareId = Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-  }
-});
-
-module.exports = mongoose.model('Trip', tripSchema);
+module.exports = tripTable;

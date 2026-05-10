@@ -37,8 +37,20 @@ const Dashboard = () => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const upcomingTrips = myTrips.filter(trip => new Date(trip.startDate) >= today);
-  const pastTrips = myTrips.filter(trip => new Date(trip.startDate) < today);
+  const getDateOnly = (dateValue) => {
+    const date = new Date(dateValue);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  const getTripEndDate = (trip) => getDateOnly(trip.endDate || trip.startDate);
+  const ongoingTrips = myTrips.filter((trip) => {
+    const startDate = getDateOnly(trip.startDate);
+    const endDate = getTripEndDate(trip);
+    return startDate <= today && endDate >= today;
+  });
+  const upcomingTrips = myTrips.filter((trip) => getDateOnly(trip.startDate) > today);
+  const pastTrips = myTrips.filter((trip) => getTripEndDate(trip) < today);
 
   return (
     <div className="min-h-[calc(100vh-73px)] bg-[#0d0f14] p-4 sm:p-8 text-white relative overflow-hidden">
@@ -106,6 +118,38 @@ const Dashboard = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Ongoing Trips */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-semibold text-white tracking-wide">Ongoing Trips</h2>
+            <div className="h-px bg-gradient-to-r from-gray-700 to-transparent flex-1"></div>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            {loading ? (
+              <p className="text-gray-500">Loading trips...</p>
+            ) : ongoingTrips.length === 0 ? (
+              <p className="text-gray-500 col-span-4">No ongoing trips right now.</p>
+            ) : (
+              ongoingTrips.map((trip) => (
+                <Link to={`/trips/${trip._id}/details`} key={trip._id} className="group relative aspect-[2/3] rounded-2xl overflow-hidden border border-emerald-500/40 shadow-lg cursor-pointer bg-gray-900 block">
+                  <img src={trip.coverImage || 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=300&h=450&q=80'} alt={trip.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+                  <div className="absolute top-3 left-3 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-bold text-black">
+                    Ongoing
+                  </div>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <p className="text-emerald-300 text-xs font-semibold mb-1 uppercase tracking-wider">
+                      {new Date(trip.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {trip.endDate ? new Date(trip.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Open'}
+                    </p>
+                    <h3 className="text-lg font-bold text-white leading-tight">{trip.title}</h3>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
 
