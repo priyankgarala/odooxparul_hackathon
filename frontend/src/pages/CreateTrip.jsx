@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -6,10 +6,11 @@ const CreateTrip = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
-    place: '',
+    country: '',
     startDate: '',
     endDate: '',
   });
+  const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -21,6 +22,24 @@ const CreateTrip = () => {
     { id: 5, name: 'Food Tasting', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80' },
     { id: 6, name: 'Nightlife', image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=300&q=80' },
   ];
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        };
+        const { data } = await axios.get('/api/cities', config);
+        setCountries(data.countries || []);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to load countries');
+      }
+    };
+
+    fetchCountries();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,13 +59,13 @@ const CreateTrip = () => {
 
       const response = await axios.post('/api/trips', {
         title: formData.title,
-        description: `Trip to ${formData.place}`,
+        description: `Trip to ${formData.country}`,
+        country: formData.country,
         startDate: formData.startDate,
         endDate: formData.endDate,
       }, config);
 
-      // On success, redirect to the itinerary builder
-      navigate(`/builder/${response.data._id}`);
+      navigate(`/trips/${response.data._id}/details`);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create trip');
     } finally {
@@ -82,15 +101,19 @@ const CreateTrip = () => {
           </div>
 
           <div className="flex items-center gap-4 bg-[#151821] border border-gray-800 rounded-xl p-4 shadow-lg focus-within:border-purple-500 transition-colors">
-            <label className="text-gray-400 font-medium whitespace-nowrap min-w-[120px]">Select a Place :</label>
-            <input 
-              type="text" 
-              name="place"
-              value={formData.place}
+            <label className="text-gray-400 font-medium whitespace-nowrap min-w-[120px]">Country:</label>
+            <select
+              name="country"
+              value={formData.country}
               onChange={handleChange}
               required
               className="w-full bg-transparent border-b border-gray-700 text-white focus:outline-none focus:border-purple-500 pb-1"
-            />
+            >
+              <option value="">Select country</option>
+              {countries.map((country) => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
           </div>
 
           <div className="flex items-center gap-4 bg-[#151821] border border-gray-800 rounded-xl p-4 shadow-lg focus-within:border-purple-500 transition-colors">

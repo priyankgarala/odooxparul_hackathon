@@ -1,4 +1,5 @@
 const Trip = require('../models/Trip');
+const cities = require('../data/cities');
 
 // @desc    Get trips
 // @route   GET /api/trips
@@ -39,24 +40,95 @@ const getTripById = async (req, res) => {
 // @access  Private
 const createTrip = async (req, res) => {
   try {
-    const { title, description, startDate, endDate, coverImage, isPublic, sections } = req.body;
+    const { title, description, country, startDate, endDate, coverImage, isPublic, sections, cities } = req.body;
 
-    if (!title || !startDate) {
-      return res.status(400).json({ message: 'Please add all required fields (title, startDate)' });
+    if (!title || !country || !startDate) {
+      return res.status(400).json({ message: 'Please add all required fields (title, country, startDate)' });
     }
 
     const trip = await Trip.create({
       userId: req.user.id,
       title,
       description,
+      country,
       startDate,
       endDate,
       coverImage,
       isPublic,
       sections: sections || [],
+      cities: cities || [],
     });
 
     res.status(201).json(trip);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getOwnedTrip = async (tripId, userId) => {
+  const trip = await Trip.findById(tripId);
+
+  if (!trip) {
+    return { error: { status: 404, message: 'Trip not found' } };
+  }
+
+  if (trip.userId.toString() !== userId) {
+    return { error: { status: 401, message: 'User not authorized to update this trip' } };
+  }
+
+  return { trip };
+};
+
+// @desc    Add a city to a trip
+// @route   POST /api/trips/:id/cities
+// @access  Private
+const addCityToTrip = async (req, res) => {
+  try {
+    const { cityId } = req.body;
+    const { trip, error } = await getOwnedTrip(req.params.id, req.user.id);
+
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    const city = cities.find((item) => item.id === cityId);
+
+    if (!city) {
+      return res.status(404).json({ message: 'City not found' });
+    }
+
+    if (trip.country && city.country !== trip.country) {
+      return res.status(400).json({ message: `Only cities in ${trip.country} can be added to this trip` });
+    }
+
+    const alreadyAdded = trip.cities.some((item) => item.cityId === city.id);
+
+    if (!alreadyAdded) {
+      trip.cities.push({ ...city, cityId: city.id });
+      await trip.save();
+    }
+
+    res.status(200).json(trip);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Remove a city from a trip
+// @route   DELETE /api/trips/:id/cities/:cityId
+// @access  Private
+const removeCityFromTrip = async (req, res) => {
+  try {
+    const { trip, error } = await getOwnedTrip(req.params.id, req.user.id);
+
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    trip.cities = trip.cities.filter((city) => city.cityId !== req.params.cityId);
+    await trip.save();
+
+    res.status(200).json(trip);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -129,4 +201,6 @@ module.exports = {
   createTrip,
   updateTrip,
   deleteTrip,
+  addCityToTrip,
+  removeCityFromTrip,
 };

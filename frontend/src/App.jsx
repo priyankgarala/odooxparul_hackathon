@@ -8,6 +8,10 @@ import Dashboard from './pages/Dashboard';
 import ItineraryBuilder from './pages/ItineraryBuilder';
 import CreateTrip from './pages/CreateTrip';
 import Profile from './pages/Profile';
+import CitySearch from './pages/CitySearch';
+import ItineraryView from './pages/ItineraryView';
+import TripDetails from './pages/TripDetails';
+import Community from './pages/Community';
 
 function App() {
   return (
@@ -43,10 +47,42 @@ function App() {
               }
             />
             <Route
+              path="/cities"
+              element={
+                <ProtectedRoute>
+                  <CitySearch />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/community"
+              element={
+                <ProtectedRoute>
+                  <Community />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/builder/:id"
               element={
                 <ProtectedRoute>
                   <ItineraryBuilder />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trips/:id/details"
+              element={
+                <ProtectedRoute>
+                  <TripDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trips/:id"
+              element={
+                <ProtectedRoute>
+                  <ItineraryView />
                 </ProtectedRoute>
               }
             />

@@ -63,6 +63,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfile = async (profileData) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      };
+      const { data } = await axios.put('/api/auth/me', profileData, config);
+      setUser(data);
+      setIsLoading(false);
+      return true;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Profile update failed');
+      setIsLoading(false);
+      return false;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -76,6 +96,7 @@ export const AuthProvider = ({ children }) => {
         error,
         login,
         register,
+        updateProfile,
         logout,
         setError,
       }}

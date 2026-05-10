@@ -20,20 +20,35 @@ const Navbar = () => {
         <div className="flex gap-4 items-center">
           {user ? (
             <>
+              <Link
+                to="/cities"
+                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+              >
+                Cities
+              </Link>
+              <Link
+                to="/community"
+                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+              >
+                Community
+              </Link>
               <Link 
                 to="/create-trip"
                 className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-lg transition-colors shadow-lg shadow-purple-500/25"
               >
                 Plan Trip
               </Link>
-              <div className="flex items-center gap-3 ml-2 mr-4 border-l border-gray-700 pl-4">
+              <Link
+                to="/profile"
+                className="flex items-center gap-3 ml-2 mr-4 border-l border-gray-700 pl-4 rounded-lg hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/70 transition-colors"
+              >
                 <img
                   src={user.profilePhoto || 'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg'}
                   alt="Profile"
                   className="w-8 h-8 rounded-full border border-gray-700"
                 />
                 <span className="text-gray-300 font-medium">{user.firstName}</span>
-              </div>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors border border-gray-700"

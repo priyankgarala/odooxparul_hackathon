@@ -123,7 +123,7 @@ const Dashboard = () => {
               <p className="text-gray-500 col-span-4">No upcoming trips found. Click 'Plan Trip' to start!</p>
             ) : (
               upcomingTrips.map((trip) => (
-                <Link to={`/builder/${trip._id}`} key={trip._id} className="group relative aspect-[2/3] rounded-2xl overflow-hidden border border-gray-800 shadow-lg cursor-pointer bg-gray-900 block">
+                <Link to={`/trips/${trip._id}/details`} key={trip._id} className="group relative aspect-[2/3] rounded-2xl overflow-hidden border border-gray-800 shadow-lg cursor-pointer bg-gray-900 block">
                   <img src={trip.coverImage || 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=300&h=450&q=80'} alt={trip.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 right-4">
@@ -152,7 +152,7 @@ const Dashboard = () => {
               <p className="text-gray-500 col-span-4">No past trips.</p>
             ) : (
               pastTrips.map((trip) => (
-                <Link to={`/builder/${trip._id}`} key={trip._id} className="group relative aspect-[2/3] rounded-2xl overflow-hidden border border-gray-800 shadow-lg cursor-pointer bg-gray-900 block">
+                <Link to={`/trips/${trip._id}/details`} key={trip._id} className="group relative aspect-[2/3] rounded-2xl overflow-hidden border border-gray-800 shadow-lg cursor-pointer bg-gray-900 block">
                   <img src={trip.coverImage || 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=300&h=450&q=80'} alt={trip.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100 filter grayscale" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 right-4">

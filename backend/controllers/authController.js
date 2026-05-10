@@ -1,20 +1,39 @@
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const userResponse = (user, token) => ({
+  _id: user._id,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  email: user.email,
+  phone: user.phone,
+  city: user.city,
+  country: user.country,
+  additionalInfo: user.additionalInfo,
+  profilePhoto: user.profilePhoto,
+  createdAt: user.createdAt,
+  ...(token ? { token } : {}),
+});
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
   try {
     const { firstName, lastName, email, phone, city, country, additionalInfo, password, profilePhoto } = req.body;
+    const normalizedEmail = email?.trim().toLowerCase();
 
     // Validation
-    if (!firstName || !lastName || !email || !password) {
+    if (!firstName || !lastName || !normalizedEmail || !password) {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
     // Check if user exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({
+      email: new RegExp(`^${escapeRegex(normalizedEmail)}$`, 'i'),
+    });
 
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
@@ -24,7 +43,7 @@ const registerUser = async (req, res) => {
     const user = await User.create({
       firstName,
       lastName,
-      email,
+      email: normalizedEmail,
       phone,
       city,
       country,
@@ -34,14 +53,7 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
-      res.status(201).json({
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        profilePhoto: user.profilePhoto,
-        token: generateToken(user._id),
-      });
+      res.status(201).json(userResponse(user, generateToken(user._id)));
     } else {
       res.status(400).json({ message: 'Invalid user data' });
     }
@@ -56,19 +68,19 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = email?.trim().toLowerCase();
+
+    if (!normalizedEmail || !password) {
+      return res.status(400).json({ message: 'Please enter email and password' });
+    }
 
     // Check for user email
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({
+      email: new RegExp(`^${escapeRegex(normalizedEmail)}$`, 'i'),
+    }).select('+password');
 
     if (user && (await user.matchPassword(password))) {
-      res.json({
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        profilePhoto: user.profilePhoto,
-        token: generateToken(user._id),
-      });
+      res.json(userResponse(user, generateToken(user._id)));
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
     }
@@ -82,19 +94,49 @@ const loginUser = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
   try {
-    const user = {
-      _id: req.user._id,
-      firstName: req.user.firstName,
-      lastName: req.user.lastName,
-      email: req.user.email,
-      phone: req.user.phone,
-      city: req.user.city,
-      country: req.user.country,
-      additionalInfo: req.user.additionalInfo,
-      profilePhoto: req.user.profilePhoto,
-      createdAt: req.user.createdAt,
-    };
-    res.status(200).json(user);
+    res.status(200).json(userResponse(req.user));
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/auth/me
+// @access  Private
+const updateMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const normalizedEmail = req.body.email?.trim().toLowerCase();
+
+    if (!req.body.firstName?.trim() || !req.body.lastName?.trim() || !normalizedEmail) {
+      return res.status(400).json({ message: 'First name, last name, and email are required' });
+    }
+
+    const emailOwner = await User.findOne({
+      email: new RegExp(`^${escapeRegex(normalizedEmail)}$`, 'i'),
+      _id: { $ne: user._id },
+    });
+
+    if (emailOwner) {
+      return res.status(400).json({ message: 'Email is already in use' });
+    }
+
+    user.firstName = req.body.firstName.trim();
+    user.lastName = req.body.lastName.trim();
+    user.email = normalizedEmail;
+    user.phone = req.body.phone?.trim() || '';
+    user.city = req.body.city?.trim() || '';
+    user.country = req.body.country?.trim() || '';
+    user.additionalInfo = req.body.additionalInfo?.trim() || '';
+    user.profilePhoto = req.body.profilePhoto?.trim() || user.profilePhoto;
+
+    const updatedUser = await user.save();
+    res.status(200).json(userResponse(updatedUser));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -104,4 +146,5 @@ module.exports = {
   registerUser,
   loginUser,
   getMe,
+  updateMe,
 };

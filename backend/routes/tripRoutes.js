@@ -6,6 +6,8 @@ const {
   createTrip,
   updateTrip,
   deleteTrip,
+  addCityToTrip,
+  removeCityFromTrip,
 } = require('../controllers/tripController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -20,5 +22,8 @@ router.route('/:id')
   .get(getTripById)
   .put(updateTrip)
   .delete(deleteTrip);
+
+router.post('/:id/cities', addCityToTrip);
+router.delete('/:id/cities/:cityId', removeCityFromTrip);
 
 module.exports = router;

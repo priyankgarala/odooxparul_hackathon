@@ -6,6 +6,20 @@ const sectionSchema = new mongoose.Schema({
   budget: { type: String }
 });
 
+const citySchema = new mongoose.Schema({
+  cityId: { type: String, required: true },
+  name: { type: String, required: true },
+  country: { type: String, required: true },
+  region: { type: String, required: true },
+  costIndex: { type: Number, required: true },
+  popularity: { type: Number, required: true },
+  bestFor: { type: String },
+  avgBudget: { type: String },
+  season: { type: String },
+  image: { type: String },
+  addedAt: { type: Date, default: Date.now },
+});
+
 const tripSchema = new mongoose.Schema(
   {
     userId: {
@@ -20,6 +34,10 @@ const tripSchema = new mongoose.Schema(
     },
     description: {
       type: String,
+    },
+    country: {
+      type: String,
+      trim: true,
     },
     startDate: {
       type: Date,
@@ -42,6 +60,7 @@ const tripSchema = new mongoose.Schema(
       sparse: true,
     },
     sections: [sectionSchema],
+    cities: [citySchema],
   },
   {
     timestamps: true,
