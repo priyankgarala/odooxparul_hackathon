@@ -13,14 +13,20 @@ const Navbar = () => {
 
   return (
     <nav className="bg-gray-900 border-b border-gray-800 px-6 py-4">
-      <div className="max-w-6xl mx-auto flex justify-between items-center">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity">
-          MERN App
+          Traveloop
         </Link>
         <div className="flex gap-4 items-center">
           {user ? (
             <>
-              <div className="flex items-center gap-3 mr-4">
+              <Link 
+                to="/create-trip"
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-lg transition-colors shadow-lg shadow-purple-500/25"
+              >
+                Plan Trip
+              </Link>
+              <div className="flex items-center gap-3 ml-2 mr-4 border-l border-gray-700 pl-4">
                 <img
                   src={user.profilePhoto || 'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg'}
                   alt="Profile"

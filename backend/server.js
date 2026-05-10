@@ -17,8 +17,13 @@ app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
+const { errorHandler } = require('./middleware/errorMiddleware');
+
 // Define routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/trips', require('./routes/tripRoutes'));
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 

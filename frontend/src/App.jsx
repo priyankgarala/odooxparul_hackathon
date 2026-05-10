@@ -5,6 +5,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import ItineraryBuilder from './pages/ItineraryBuilder';
+import CreateTrip from './pages/CreateTrip';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -20,6 +23,30 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create-trip"
+              element={
+                <ProtectedRoute>
+                  <CreateTrip />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/builder/:id"
+              element={
+                <ProtectedRoute>
+                  <ItineraryBuilder />
                 </ProtectedRoute>
               }
             />
